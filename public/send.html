@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Wallet - Send</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0f;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 560px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #1e1e2e;
+      width: 100%;
+    }
+    .header h1 { font-size: 24px; font-weight: 700; }
+    .header h1 span { color: #00ff88; }
+    .btn {
+      padding: 10px 20px;
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      background: #12121a;
+      color: #e0e0e0;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.3s, transform 0.2s;
+      text-decoration: none;
+    }
+    .btn:hover {
+      border-color: #00ff8840;
+      transform: translateY(-1px);
+    }
+    .card {
+      background: #12121a;
+      border: 1px solid #1e1e2e;
+      border-radius: 12px;
+      padding: 32px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .card:hover {
+      border-color: #00ff8840;
+      transform: translateY(-1px);
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .section-title::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #00ff88;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff88;
+    }
+    .section-title h2 { font-size: 18px; font-weight: 600; }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 14px 16px;
+      background: #0a0a0f;
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #00ff88;
+    }
+    .form-group select option {
+      background: #12121a;
+      color: #e0e0e0;
+    }
+    .gas-estimate {
+      background: #0a0a0f;
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gas-label { font-size: 13px; color: #888; }
+    .gas-value { font-size: 14px; color: #ffc800; font-family: monospace; }
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #00ff88, #00ccaa);
+      border: none;
+      border-radius: 8px;
+      color: #0a0a0f;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.3s, transform 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .result.success {
+      display: block;
+      background: #00ff8810;
+      border: 1px solid #00ff8830;
+      color: #00ff88;
+    }
+    .result.error {
+      display: block;
+      background: #ff505010;
+      border: 1px solid #ff505030;
+      color: #ff5050;
+    }
+    .result .tx-hash {
+      font-family: monospace;
+      font-size: 12px;
+      word-break: break-all;
+      margin-top: 8px;
+      color: #00ccaa;
+    }
+    .warning-box {
+      background: #ffc80010;
+      border: 1px solid #ffc80030;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #ffc800;
+      display: none;
+    }
+    .warning-box.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><span>↗</span> Send Crypto</h1>
+      <a href="/wallet" class="btn">← Dashboard</a>
+    </div>
+
+    <div class="card">
+      <div class="section-title"><h2>Send Transaction</h2></div>
+      
+      <form id="sendForm">
+        <div class="form-group">
+          <label>Network</label>
+          <select id="network" onchange="updateGas()">
+            <option value="ethereum">Ethereum (ETH)</option>
+            <option value="bnb">BNB Chain (BNB)</option>
+            <option value="polygon">Polygon (MATIC)</option>
+            <option value="arbitrum">Arbitrum (ETH)</option>
+            <option value="optimism">Optimism (ETH)</option>
+            <option value="bitcoin">Bitcoin (BTC)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Recipient Address</label>
+          <input type="text" id="recipient" placeholder="0x... or bc1..." required>
+        </div>
+
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" id="amount" placeholder="0.0" step="any" min="0" required>
+        </div>
+
+        <div class="warning-box" id="warningBox">
+          ⚠️ This transaction exceeds $100. Please confirm you want to proceed.
+        </div>
+
+        <div class="gas-estimate">
+          <span class="gas-label">Estimated Gas Fee</span>
+          <span class="gas-value" id="gasValue">--</span>
+        </div>
+
+        <button type="submit" class="btn-primary" id="sendBtn">Confirm & Send</button>
+      </form>
+
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    // Check auth
+    fetch('/api/wallet').then(res => {
+      if (res.status === 401) window.location.href = '/';
+    });
+
+    async function updateGas() {
+      const network = document.getElementById('network').value;
+      const gasEl = document.getElementById('gasValue');
+      gasEl.textContent = 'Loading...';
+
+      try {
+        const res = await fetch(`/api/gas/${network}`);
+        const data = await res.json();
+        if (data.gasPrice) {
+          gasEl.textContent = `${data.gasPrice} (~${parseFloat(data.estimatedCost).toFixed(6)} native)`;
+        } else {
+          gasEl.textContent = 'N/A';
+        }
+      } catch {
+        gasEl.textContent = 'Error';
+      }
+    }
+
+    // Check amount for $100 warning
+    document.getElementById('amount').addEventListener('input', () => {
+      const amount = parseFloat(document.getElementById('amount').value) || 0;
+      const warning = document.getElementById('warningBox');
+      // Simple check — in production, multiply by current price
+      if (amount > 0.03) { // ~$100 in ETH approximation
+        warning.classList.add('show');
+      } else {
+        warning.classList.remove('show');
+      }
+    });
+
+    document.getElementById('sendForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const network = document.getElementById('network').value;
+      const to = document.getElementById('recipient').value.trim();
+      const amount = document.getElementById('amount').value;
+      const sendBtn = document.getElementById('sendBtn');
+      const result = document.getElementById('result');
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Sending...';
+      result.className = 'result';
+      result.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ network, to, amount })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          result.className = 'result success';
+          result.innerHTML = `\u2713 Transaction sent successfully!<div class="tx-hash">TX Hash: ${data.txHash}</div>`;
+        } else {
+          result.className = 'result error';
+          result.textContent = `\u2717 ${data.error || 'Transaction failed'}${data.details ? ': ' + data.details : ''}`;
+        }
+      } catch (err) {
+        result.className = 'result error';
+        result.textContent = '\u2717 Connection error';
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Confirm & Send';
+      }
+    });
+
+    updateGas();
+  </script>
+</body>
+</html>
