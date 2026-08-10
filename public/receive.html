@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Wallet - Receive</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0f;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 560px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #1e1e2e;
+      width: 100%;
+    }
+    .header h1 { font-size: 24px; font-weight: 700; }
+    .header h1 span { color: #00ff88; }
+    .btn {
+      padding: 10px 20px;
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      background: #12121a;
+      color: #e0e0e0;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.3s, transform 0.2s;
+      text-decoration: none;
+    }
+    .btn:hover {
+      border-color: #00ff8840;
+      transform: translateY(-1px);
+    }
+    .card {
+      background: #12121a;
+      border: 1px solid #1e1e2e;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 20px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .card:hover {
+      border-color: #00ff8840;
+      transform: translateY(-1px);
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .section-title::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #00ff88;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff88;
+    }
+    .section-title h2 { font-size: 18px; font-weight: 600; }
+    .network-select {
+      margin-bottom: 24px;
+    }
+    .network-select label {
+      display: block;
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .network-select select {
+      width: 100%;
+      padding: 14px 16px;
+      background: #0a0a0f;
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 15px;
+      outline: none;
+    }
+    .network-select select:focus { border-color: #00ff88; }
+    .network-select select option { background: #12121a; color: #e0e0e0; }
+    .qr-container {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .qr-container img {
+      border-radius: 12px;
+      border: 2px solid #1e1e2e;
+    }
+    .address-display {
+      background: #0a0a0f;
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .address-text {
+      font-family: monospace;
+      font-size: 13px;
+      color: #00ccaa;
+      word-break: break-all;
+      flex: 1;
+    }
+    .btn-copy {
+      padding: 8px 16px;
+      background: #00ff8820;
+      border: 1px solid #00ff8840;
+      border-radius: 6px;
+      color: #00ff88;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.3s;
+    }
+    .btn-copy:hover { background: #00ff8840; }
+    .btn-copy.copied {
+      background: #00ff8840;
+    }
+    .all-addresses {
+      margin-top: 20px;
+    }
+    .address-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #1e1e2e;
+    }
+    .address-item:last-child { border-bottom: none; }
+    .address-item .network-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      min-width: 80px;
+    }
+    .address-item .addr {
+      font-family: monospace;
+      font-size: 12px;
+      color: #00ccaa;
+      word-break: break-all;
+      flex: 1;
+      margin: 0 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><span>↙</span> Receive Crypto</h1>
+      <a href="/wallet" class="btn">← Dashboard</a>
+    </div>
+
+    <div class="card">
+      <div class="section-title"><h2>Receive Address</h2></div>
+
+      <div class="network-select">
+        <label>Select Network</label>
+        <select id="network" onchange="updateAddress()">
+          <option value="ethereum">Ethereum (ETH)</option>
+          <option value="bnb">BNB Chain (BNB)</option>
+          <option value="polygon">Polygon (MATIC)</option>
+          <option value="arbitrum">Arbitrum (ETH)</option>
+          <option value="optimism">Optimism (ETH)</option>
+          <option value="bitcoin">Bitcoin (BTC)</option>
+        </select>
+      </div>
+
+      <div class="qr-container" id="qrContainer">
+        <p style="color:#888;">Loading QR code...</p>
+      </div>
+
+      <div class="address-display">
+        <span class="address-text" id="addressText">Loading...</span>
+        <button class="btn-copy" id="copyBtn" onclick="copyAddress()">Copy</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title"><h2>All Network Addresses</h2></div>
+      <div class="all-addresses" id="allAddresses">
+        <p style="color:#888;">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentAddress = '';
+
+    // Check auth
+    fetch('/api/wallet').then(res => {
+      if (res.status === 401) window.location.href = '/';
+    });
+
+    async function updateAddress() {
+      const network = document.getElementById('network').value;
+      const addressText = document.getElementById('addressText');
+      const qrContainer = document.getElementById('qrContainer');
+
+      try {
+        const res = await fetch(`/api/address/${network}`);
+        const data = await res.json();
+        currentAddress = data.address;
+        addressText.textContent = currentAddress;
+
+        // Generate QR
+        const qrRes = await fetch(`/api/qrcode/${encodeURIComponent(currentAddress)}`);
+        const qrData = await qrRes.json();
+        qrContainer.innerHTML = `<img src="${qrData.qrcode}" alt="QR Code" width="256" height="256">`;
+      } catch {
+        addressText.textContent = 'Error loading address';
+        qrContainer.innerHTML = '<p style="color:#ff5050;">Failed to generate QR</p>';
+      }
+    }
+
+    async function loadAllAddresses() {
+      const networks = ['ethereum', 'bnb', 'polygon', 'arbitrum', 'optimism', 'bitcoin'];
+      const container = document.getElementById('allAddresses');
+      let html = '';
+
+      for (const net of networks) {
+        try {
+          const res = await fetch(`/api/address/${net}`);
+          const data = await res.json();
+          html += `<div class="address-item">
+            <span class="network-label">${net}</span>
+            <span class="addr">${data.address}</span>
+            <button class="btn-copy" onclick="copyText('${data.address}', this)">Copy</button>
+          </div>`;
+        } catch {}
+      }
+
+      container.innerHTML = html || '<p style="color:#888;">No addresses available</p>';
+    }
+
+    function copyAddress() {
+      copyText(currentAddress, document.getElementById('copyBtn'));
+    }
+
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.textContent;
+        btn.textContent = '\u2713 Copied';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    updateAddress();
+    loadAllAddresses();
+  </script>
+</body>
+</html>
